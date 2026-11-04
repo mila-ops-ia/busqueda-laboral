@@ -1,0 +1,7 @@
+# Datos personales de cada búsqueda: no se suben
+config.json
+vistos.json
+nuevas_filas.json
+
+__pycache__/
+.DS_Store

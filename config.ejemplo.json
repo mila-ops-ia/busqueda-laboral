@@ -1,0 +1,33 @@
+{
+  "ubicacion": "Ciudad Autónoma de Buenos Aires, Argentina",
+  "distancia_millas": 25,
+  "palabras_clave": [
+    "logística",
+    "operaciones",
+    "supply chain",
+    "procesos",
+    "mejora continua",
+    "planificación",
+    "abastecimiento",
+    "inventario",
+    "SAP",
+    "S&OP"
+  ],
+  "puntaje_minimo": 6,
+  "max_avisos_por_pasada": 80,
+  "origen_distancias": "Palermo",
+  "distancias_km": {
+    "palermo": 0,
+    "belgrano": 5,
+    "recoleta": 4,
+    "microcentro": 7,
+    "vicente lópez": 12,
+    "san isidro": 20,
+    "avellaneda": 12,
+    "lanús": 16,
+    "morón": 22,
+    "tigre": 30,
+    "pilar": 50,
+    "la plata": 60
+  }
+}
