@@ -29,7 +29,7 @@ ORIGEN = CONFIG.get("origen_distancias", "tu casa")
 KM = CONFIG.get("distancias_km", {})
 
 COLUMNAS = [
-    "Puntaje (1 a 10)", "Prioridad", "Estado", "Puesto", "Empresa", "Área", "Nivel", "Ubicación",
+    "Puntaje (1 a 10)", "Prioridad", "Estado", "Mi observación", "Puesto", "Empresa", "Área", "Nivel", "Ubicación",
     "Km aprox. desde " + ORIGEN, "Modalidad", "Publicado", "Días publicado", "Postulantes",
     "Lo que cumplís", "Lo que te falta", "A verificar", "Link del aviso", "Contacto en el aviso",
     "Perfil del contacto", "Opiniones de la empresa", "Fecha de postulación", "Próximo paso", "Notas",
@@ -254,6 +254,7 @@ def puntuar(j, html):
         "Puntaje (1 a 10)": s,
         "Prioridad": "Alta" if s >= 8 else ("Media" if s >= 7 else "Baja"),
         "Estado": "Por postular",
+        "Mi observación": "",
         "Puesto": j["titulo"],
         "Empresa": j["empresa"],
         "Área": area,
