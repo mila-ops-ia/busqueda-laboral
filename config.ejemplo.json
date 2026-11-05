@@ -29,5 +29,19 @@
     "tigre": 30,
     "pilar": 50,
     "la plata": 60
-  }
+  },
+  "zona_permitida": [
+    "palermo",
+    "belgrano",
+    "recoleta",
+    "núñez",
+    "colegiales",
+    "vicente lópez"
+  ],
+  "texto_fuera_de_zona": [
+    "zona sur",
+    "zona oeste",
+    "\\bpilar\\b",
+    "\\bescobar\\b"
+  ]
 }

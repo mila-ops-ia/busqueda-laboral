@@ -9,7 +9,7 @@ Buscar trabajo me estaba llevando horas: abrir avisos, leer requisitos y anotar 
 ## Qué hace
 
 1. **Busca** en el listado público de LinkedIn los avisos de las últimas 24 horas en mi zona, con las palabras clave que configuré (logística, procesos, supply chain, SAP, entre otras).
-2. **Filtra** los que no son de mi área, como ventas, puestos junior o desarrollo de software, y los que ya revisó en pasadas anteriores.
+2. **Filtra** los que no son de mi área, como ventas, puestos junior o desarrollo de software, y los que ya revisó en pasadas anteriores. También descarta los que quedan fuera de mi zona (en mi caso, zona norte): si el aviso solo dice "Buenos Aires", busca en el texto dónde es, y si no lo aclara lo deja con "Ubicación exacta" para verificar. Los remotos pasan siempre.
 3. **Lee cada aviso y le pone un puntaje del 1 al 10.** Suma por lo que coincide con mi experiencia (SAP, KPIs, operadores 3PL, mejora de procesos, IA) y resta por lo que me falta o no me conviene (inglés avanzado, título de Ingeniería, puestos de planta, distancia).
 4. **Mira el rubro de la empresa.** Suma si es farmacéutica o de salud, fintech o banca, o una multinacional, que es donde ya trabajé, y lo anota primero en "lo que cumplo".
 5. **Arma una fila por aviso** con el puntaje, la prioridad, lo que cumplo, lo que me falta, los km aproximados, la modalidad, la cantidad de postulantes, el link y el contacto si figura.
@@ -18,7 +18,7 @@ Buscar trabajo me estaba llevando horas: abrir avisos, leer requisitos y anotar 
 ## Cómo está hecho
 
 - **Python, sin librerías externas.** Usa solo la biblioteca estándar.
-- **Configurable:** la zona, las palabras clave, el puntaje mínimo y la tabla de distancias están en `config.json`.
+- **Configurable:** la zona, las localidades permitidas, las palabras clave, el puntaje mínimo y la tabla de distancias están en `config.json`.
 - **Sin repetidos:** guarda en `vistos.json` los avisos que ya revisó.
 - **Programado con una tarea de Claude.** En [tarea-programada.md](tarea-programada.md) está el texto que uso.
 

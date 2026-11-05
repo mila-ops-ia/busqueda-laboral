@@ -27,6 +27,8 @@ PUNTAJE_MINIMO = CONFIG.get("puntaje_minimo", 6)
 MAX_NUEVOS = CONFIG.get("max_avisos_por_pasada", 80)
 ORIGEN = CONFIG.get("origen_distancias", "tu casa")
 KM = CONFIG.get("distancias_km", {})
+ZONA = [z.lower() for z in CONFIG.get("zona_permitida", [])]
+FUERA_TXT = CONFIG.get("texto_fuera_de_zona", [])
 
 COLUMNAS = [
     "Puntaje (1 a 10)", "Prioridad", "Estado", "Mi observación", "Puesto", "Empresa", "Área", "Nivel", "Ubicación",
@@ -78,6 +80,28 @@ def km_de(ubicacion, desc):
         if " " + k in d and (best is None or v < best):
             best = v
     return best
+
+
+def zona_de(ubicacion, desc):
+    """Dice si el aviso está en la zona permitida: "dentro", "fuera" o "sin dato".
+
+    Primero mira la ubicación del aviso. Si es genérica (por ejemplo "Buenos Aires"),
+    busca en el texto menciones de la zona permitida o de zonas que no interesan.
+    Sin zona_permitida en config.json, no filtra.
+    """
+    if not ZONA:
+        return "dentro"
+    u = (ubicacion or "").lower()
+    if any(z in u for z in ZONA):
+        return "dentro"
+    if any(k in u for k in KM) or any(re.search(p, u) for p in FUERA_TXT):
+        return "fuera"
+    d = " " + (desc or "")[:4000].lower()
+    if any(re.search(r"\b" + re.escape(z) + r"\b", d) for z in ZONA):
+        return "dentro"
+    if any(re.search(p, d) for p in FUERA_TXT):
+        return "fuera"
+    return "sin dato"
 
 
 def buscar(links):
@@ -233,6 +257,12 @@ def puntuar(j, html):
         mod = "Remoto"
     elif re.search(r"presencial|on-site|onsite", x):
         mod = "Presencial"
+
+    zona = zona_de(j["ubicacion"], desc)
+    if zona == "fuera" and mod != "Remoto":
+        return None
+    if zona == "sin dato":
+        ver.append("Ubicación exacta")
 
     kmv = km_de(j["ubicacion"], desc)
     if kmv is not None and kmv > 45:
