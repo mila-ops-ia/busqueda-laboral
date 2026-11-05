@@ -1,6 +1,6 @@
 # Búsqueda laboral automática 🔎
 
-Un script que dos veces por día busca avisos nuevos en LinkedIn, los puntúa según mi perfil y los suma a un Google Sheet donde sigo mis postulaciones.
+Un script que todos los días busca avisos nuevos en LinkedIn, los puntúa según mi perfil y los suma a un Google Sheet donde sigo mis postulaciones.
 
 ## Por qué lo armé
 
@@ -11,8 +11,9 @@ Buscar trabajo me estaba llevando horas: abrir avisos, leer requisitos y anotar 
 1. **Busca** en el listado público de LinkedIn los avisos de las últimas 24 horas en mi zona, con las palabras clave que configuré (logística, procesos, supply chain, SAP, entre otras).
 2. **Filtra** los que no son de mi área, como ventas, puestos junior o desarrollo de software, y los que ya revisó en pasadas anteriores.
 3. **Lee cada aviso y le pone un puntaje del 1 al 10.** Suma por lo que coincide con mi experiencia (SAP, KPIs, operadores 3PL, mejora de procesos, IA) y resta por lo que me falta o no me conviene (inglés avanzado, título de Ingeniería, puestos de planta, distancia).
-4. **Arma una fila por aviso** con el puntaje, la prioridad, lo que cumplo, lo que me falta, los km aproximados, la modalidad, la cantidad de postulantes, el link y el contacto si figura.
-5. **Claude agrega las filas** al Sheet con el conector de Google Sheets, a las 8 y a las 20.
+4. **Mira el rubro de la empresa.** Suma si es farmacéutica o de salud, fintech o banca, o una multinacional, que es donde ya trabajé, y lo anota primero en "lo que cumplo".
+5. **Arma una fila por aviso** con el puntaje, la prioridad, lo que cumplo, lo que me falta, los km aproximados, la modalidad, la cantidad de postulantes, el link y el contacto si figura.
+6. **Claude agrega las filas** al Sheet con el conector de Google Sheets, todos los días a las 8.
 
 ## Cómo está hecho
 

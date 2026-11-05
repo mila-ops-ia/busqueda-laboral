@@ -1,6 +1,6 @@
 # Cómo programar la búsqueda con Claude
 
-Yo la tengo como tarea programada en la app de Claude (Code), que corre todos los días a las 8 y a las 20 (`0 8,20 * * *`). Este es el texto de la tarea. Reemplazá la ruta y el ID del Sheet por los tuyos.
+Yo la tengo como tarea programada en la app de Claude (Code), que corre todos los días a las 8 (`0 8 * * *`). Al principio corría también a las 20, pero como busca los avisos de las últimas 24 horas, una pasada por día alcanza y gasta la mitad. Este es el texto de la tarea. Reemplazá la ruta y el ID del Sheet por los tuyos.
 
 ```text
 Tarea: agregar avisos de trabajo nuevos al Google Sheet de seguimiento.

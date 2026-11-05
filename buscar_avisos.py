@@ -114,6 +114,29 @@ def buscar(links):
     return avisos[:MAX_NUEVOS]
 
 
+EMPRESAS_RUBRO = {
+    "farma o salud": r"johnson ?& ?johnson|j&j|kenvue|merz|bayer|roche|novartis|pfizer|sanofi|astrazeneca|abbott|abbvie|allergan|baxter|bag[oó]|roemmers|gador|elea|raffo|casasco|biog[eé]nesis|medtronic|b\. ?braun|fresenius|gsk|glaxo|\bmsd\b|boehringer|takeda|novo nordisk|galderma|siemens healthineers|becton|\bbd\b|stryker|droguer|scienza|osde|swiss medical|laboratorio|pharma|farma|biotec|health|salud|medical|m[eé]dic",
+    "fintech o banca": r"itti|ueno|mercado pago|mercadopago|ual[aá]|naranja x|galicia|santander|bbva|macro|icbc|hsbc|brubank|\bmodo\b|prisma|payway|fiserv|visa|mastercard|lemon|\bbelo\b|personal pay|\bprex\b|fintech|banco|\bbank\b|pagos|payments",
+    "multinacional": r"unilever|procter|p&g|nestl[eé]|danone|coca[- ]cola|pepsico|mondelez|kimberly|\b3m\b|siemens|\bdhl\b|kuehne|\bdsv\b|maersk|schneider|accenture|deloitte|\bpwc\b|\bey\b|kpmg|loreal|l'or[eé]al|natura|amazon|mercadolibre|mercado libre|cervecer[ií]a|quilmes|ab ?inbev|heineken|arcor|bimbo|cargill|bunge|syngenta|basf|dow\b|whirlpool|samsung|lg\b|philips|bosch",
+}
+DESC_RUBRO = {
+    "farma o salud": r"industria farmac[eé]utica|laboratorio farmac[eé]utico|empresa farmac[eé]utica|productos farmac[eé]uticos|dispositivos m[eé]dicos|sector salud|industria de la salud|healthcare|life sciences|insumos m[eé]dicos",
+    "fintech o banca": r"\bfintech\b|entidad financiera|entidad bancaria|sector bancario|billetera virtual|billetera digital",
+    "multinacional": r"multinacional|l[ií]der mundial|l[ií]der global|presencia en m[aá]s de \d+ pa[ií]ses|global company|compañ[ií]a global|empresa global",
+}
+PESO_RUBRO = {"farma o salud": 0.8, "fintech o banca": 0.8, "multinacional": 0.4}
+
+
+def rubro_de(empresa, texto):
+    """Devuelve los rubros afines a la experiencia de Mila que se ven en la empresa o en el aviso."""
+    emp = empresa.lower()
+    encontrados = []
+    for rubro in PESO_RUBRO:
+        if re.search(EMPRESAS_RUBRO[rubro], emp) or re.search(DESC_RUBRO[rubro], texto):
+            encontrados.append(rubro)
+    return encontrados
+
+
 def puntuar(j, html):
     desc = tomar(html, r"show-more-less-html__markup[^>]*>(.*?)</div>")[:6000]
     appl = tomar(html, r"num-applicants__caption[^>]*>(.*?)</(?:span|figcaption)>")
@@ -157,7 +180,7 @@ def puntuar(j, html):
     suma(r"power bi|looker|tablero|dashboard|quicksight|tableau", 0.5, "Tableros BI")
     suma(r"kpi|indicador", 0.5, "KPIs")
     suma(r"3pl|4pl|operador log[ií]stico|operadores log[ií]sticos|tercerizad", 0.6, "Operadores 3PL")
-    suma(r"procedimiento|\bsop|instructivo|manual", 0.4, "SOPs")
+    suma(r"procedimiento|\bsop|instructivo|manual", 0.4, "Procedimientos")
     suma(r"mejora continua|as-is|to-be|bpmn|relevamiento|relevar|mapeo|lean|kaizen|reingenier", 0.6, "Mejora de procesos")
     suma(r"inteligencia artificial|\bia\b|\bai\b|gemini|chatgpt|claude|copilot|automatiz|automation|rpa", 1, "IA y automatización")
     suma(r"jira|salesforce|crm", 0.4, "Jira y Salesforce")
@@ -168,9 +191,13 @@ def puntuar(j, html):
     suma(r"scrum|kanban|[aá]gil|agile", 0.3, "Ágil")
     suma(r"factura|order to cash|o2c|cobranza|nota de cr[eé]dito", 0.3, "Facturación")
     suma(r"stakeholder|transversal|cross|interdisciplin|multifuncional", 0.3, "Trabajo con otras áreas")
-    if re.search(r"fintech|banca|bancari|billetera", x[:800]):
-        pros.append("Fintech")
     s += min(P, 3)
+
+    # Rubro de la empresa: suma si se parece a donde ya trabajó (farma, salud, fintech o banca, multinacional)
+    rubros = rubro_de(j["empresa"], x)
+    if rubros:
+        s += min(1.0, sum(PESO_RUBRO[r] for r in rubros))
+        pros.insert(0, "Rubro afín: " + " y ".join(rubros))
 
     def resta(patron, p, txt):
         nonlocal s
