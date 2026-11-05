@@ -293,7 +293,8 @@ def puntuar(j, html):
         "Km aprox. desde " + ORIGEN: "Sin dato" if kmv is None else kmv,
         "Modalidad": mod,
         "Publicado": j["fecha"],
-        "Días publicado": dias,
+        # Fórmula para que el Sheet recalcule los días cada día (usa la columna Publicado de la misma fila)
+        "Días publicado": '=IF(INDIRECT("L"&ROW())="","",TODAY()-INDIRECT("L"&ROW()))',
         "Postulantes": appl.replace(" solicitudes", "").replace("Sé de los primeros 25 solicitantes", "Menos de 25"),
         "Lo que cumplís": unicos(pros),
         "Lo que te falta": unicos(cons),

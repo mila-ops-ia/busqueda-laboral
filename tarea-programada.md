@@ -16,7 +16,9 @@ Tarea: agregar avisos de trabajo nuevos al Google Sheet de seguimiento.
    - spreadsheetId: <ID de tu Sheet>
    - range: Avisos!A1
    - values: las filas tal cual vienen en el archivo.
-   Si una celda de texto empieza con "+" o "=", anteponele una comilla simple (').
+   La columna M ("Días publicado") trae una fórmula: dejala tal cual, así el Sheet
+   recalcula los días solo. En cualquier otra celda de texto que empiece con "+" o "=",
+   anteponele una comilla simple (').
    Después verificá con get_values que se hayan agregado.
 
 4. Terminá con un resumen corto: cuántas filas agregaste y los 3 mejores avisos.
