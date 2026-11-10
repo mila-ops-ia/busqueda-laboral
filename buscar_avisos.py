@@ -47,7 +47,7 @@ VENTANA_SEG = ventana_segundos()
 COLUMNAS = [
     "Puntaje (1 a 10)", "Prioridad", "Estado", "Mi observación", "Puesto", "Empresa", "Área", "Nivel", "Ubicación",
     "Km aprox. desde " + ORIGEN, "Modalidad", "Publicado", "Días publicado", "Postulantes",
-    "Lo que cumplís", "Lo que te falta", "A verificar", "Link del aviso", "Contacto en el aviso",
+    "Lo que cumplís", "Lo que te falta", "Filtro duro", "A verificar", "Link del aviso", "Contacto en el aviso",
     "Perfil del contacto", "Opiniones de la empresa", "Fecha de postulación", "Próximo paso", "Notas",
     "Agregado el",
 ]
@@ -312,6 +312,8 @@ def puntuar(j, html):
         "Postulantes": appl.replace(" solicitudes", "").replace("Sé de los primeros 25 solicitantes", "Menos de 25"),
         "Lo que cumplís": unicos(pros),
         "Lo que te falta": unicos(cons),
+        # Fórmula: marca si el aviso pide título de Ingeniería o inglés, que suelen ser filtros automáticos
+        "Filtro duro": '=LET(t,INDIRECT("P"&ROW()),IF(INDIRECT("E"&ROW())="","",IF(OR(ISNUMBER(SEARCH("Ingenier",t)),ISNUMBER(SEARCH("ingl",t))),"Sí: "&TEXTJOIN(" y ",TRUE,IF(ISNUMBER(SEARCH("Ingenier",t)),"título",""),IF(ISNUMBER(SEARCH("ingl",t)),"inglés","")),"No")))',
         "A verificar": unicos(ver),
         "Link del aviso": j["link"],
         "Contacto en el aviso": (poster + (" - " + poster_sub[:60] if poster_sub else "")) if poster else "",
