@@ -29,6 +29,20 @@ ORIGEN = CONFIG.get("origen_distancias", "tu casa")
 KM = CONFIG.get("distancias_km", {})
 ZONA = [z.lower() for z in CONFIG.get("zona_permitida", [])]
 FUERA_TXT = CONFIG.get("texto_fuera_de_zona", [])
+RUTA_ULTIMA = os.path.join(CARPETA, "ultima_pasada.txt")
+
+
+def ventana_segundos():
+    """Busca desde la última pasada que terminó bien (máximo 7 días), para no perder avisos si un día no corrió."""
+    try:
+        ultima = datetime.fromisoformat(open(RUTA_ULTIMA, encoding="utf-8").read().strip())
+        seg = int((datetime.now() - ultima).total_seconds()) + 3 * 3600
+    except (OSError, ValueError):
+        seg = 86400
+    return max(86400, min(seg, 7 * 86400))
+
+
+VENTANA_SEG = ventana_segundos()
 
 COLUMNAS = [
     "Puntaje (1 a 10)", "Prioridad", "Estado", "Mi observación", "Puesto", "Empresa", "Área", "Nivel", "Ubicación",
@@ -110,7 +124,7 @@ def buscar(links):
         for start in (0, 10):
             url = ("https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords="
                    + urllib.parse.quote(kw) + "&location=" + urllib.parse.quote(LOCATION)
-                   + "&distance=" + str(DISTANCIA) + "&f_TPR=r86400&start=" + str(start))
+                   + "&distance=" + str(DISTANCIA) + "&f_TPR=r" + str(VENTANA_SEG) + "&start=" + str(start))
             html = get(url)
             time.sleep(0.8)
             trozos = html.split('data-entity-urn="')[1:]
@@ -186,7 +200,7 @@ def puntuar(j, html):
         s -= 1.5; nivel = "Dirección"; cons.append("Dirección: por encima de tu recorrido")
     elif re.search(r"gerente|manager", t):
         nivel = "Gerencia"; cons.append("Nivel gerencial: salto respecto de tu último puesto")
-    elif re.search(r"jefe|jefa|lead|l[ií]der|responsable", t):
+    elif re.search(r"jefe|jefa|lead|l[ií]der|responsable|team ?leader", t):
         s += 0.6; nivel = "Jefatura / líder"
     elif re.search(r"coordinador|coordinadora|coordinator|supervisor|supervisora|encargad", t):
         s += 0.6; nivel = "Coordinación / supervisión"
@@ -329,7 +343,8 @@ def main():
     filas.sort(key=lambda f: -f[0])
     json.dump(filas, open(os.path.join(carpeta, "nuevas_filas.json"), "w", encoding="utf-8"), ensure_ascii=False)
     json.dump(sorted(vistos), open(ruta_vistos, "w", encoding="utf-8"), indent=0)
-    print(f"Avisos nuevos revisados: {len(avisos)}. Filas para agregar ({PUNTAJE_MINIMO} o más): {len(filas)}.")
+    open(RUTA_ULTIMA, "w", encoding="utf-8").write(datetime.now().isoformat(timespec="seconds"))
+    print(f"Ventana de búsqueda: {VENTANA_SEG // 3600} horas. Avisos nuevos revisados: {len(avisos)}. Filas para agregar ({PUNTAJE_MINIMO} o más): {len(filas)}.")
 
 
 if __name__ == "__main__":
