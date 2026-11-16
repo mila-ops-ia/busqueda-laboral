@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Caso de aprendizaje · Optimización de tokens</title></head>
+<body>
+<h1>Caso de aprendizaje: la búsqueda laboral automática, con menos IA</h1>
+<p><i>Milagros Sanabria · noviembre 2026 · AS-IS medido, TO-BE proyectado</i></p>
+
+<h2>1. Contexto</h2>
+<p>Desde el 4/11 una tarea programada de Claude corre todos los días a las 8: ejecuta un script de Python que busca avisos en LinkedIn, los puntúa según mi perfil y los carga en el Sheet de seguimiento. Funciona, pero cada pasada usa un modelo de IA para un trabajo que en gran parte es <b>mover datos de un archivo a una planilla</b>.</p>
+<p><b>Pregunta del caso:</b> ¿cuánto cuesta en tokens y en tiempo mantener esta automatización, y cuánto se puede ahorrar sin perder resultado?</p>
+
+<h2>2. AS-IS: lo que medí</h2>
+<p>Fuente: registros de las 13 pasadas entre el 4/11 y el 16/11. 10 terminaron bien y 3 fallaron.</p>
+<table border="1" cellpadding="6">
+<tr><th>Indicador</th><th>Valor medido</th></tr>
+<tr><td>Modelo usado</td><td>Opus (el más potente), esfuerzo medio</td></tr>
+<tr><td>Llamadas al modelo por pasada</td><td>18,5 en promedio (mínimo 7, máximo 39)</td></tr>
+<tr><td>Tokens procesados por pasada</td><td>1,59 millones en promedio (mediana 1,51 M; rango 0,57 M a 3,64 M)</td></tr>
+<tr><td>Composición de esos tokens</td><td>92 % lectura de caché (contexto repetido), 7 % escritura de caché, 0,7 % texto generado</td></tr>
+<tr><td>Pasada sin ningún aviso nuevo (16/11)</td><td>0,57 M tokens igual</td></tr>
+<tr><td>Total de las 10 pasadas</td><td>15,9 millones de tokens</td></tr>
+<tr><td>Pasadas fallidas</td><td>3 de 13 (23 %), del 7 al 9/11, por llegar al límite semanal de uso de Claude</td></tr>
+<tr><td>Confiabilidad</td><td>77 % de días con carga a tiempo</td></tr>
+<tr><td>Duración de una pasada corta</td><td>2 min 40 s a 3 min 35 s (script + carga por Claude)</td></tr>
+</table>
+<p><b>Diagnóstico:</b> el 100 % del trabajo que hacía la IA era operativo (correr el script, leer un JSON, copiar filas al Sheet, verificar). Ninguna pasada necesitó criterio. Además, la automatización competía con mi propio uso de Claude por el mismo límite semanal: cuando se agotó, la búsqueda se cortó 3 días.</p>
+
+<h2>3. TO-BE: el rediseño</h2>
+<ul>
+<li><b>El script carga el Sheet directo</b>, a través de un Apps Script del propio Sheet protegido con una clave. Sin IA de por medio.</li>
+<li><b>La Mac lo programa sola</b> todos los días a las 8:05 (launchd). Si la Mac estaba dormida, corre al despertar.</li>
+<li><b>Si falla la carga, no se pierde nada:</b> las filas quedan en pendientes y se mandan en la pasada siguiente.</li>
+<li><b>Aviso en pantalla</b> con los 3 mejores avisos del día y un registro de cada pasada (pasadas.log) para medir.</li>
+<li><b>La IA queda para lo que suma criterio:</b> ajustar el puntaje, analizar tendencias, preparar postulaciones.</li>
+</ul>
+
+<h2>4. AS-IS vs TO-BE en números</h2>
+<table border="1" cellpadding="6">
+<tr><th>Indicador</th><th>AS-IS (medido)</th><th>TO-BE (proyectado)</th><th>Cambio</th></tr>
+<tr><td>Tokens por pasada</td><td>1,59 M</td><td>0</td><td>−100 %</td></tr>
+<tr><td>Tokens por mes (30 pasadas)</td><td>47,7 M</td><td>0</td><td>−47,7 M</td></tr>
+<tr><td>Tokens por año</td><td>580 M</td><td>0</td><td>−580 M</td></tr>
+<tr><td>Llamadas al modelo por día</td><td>18,5</td><td>0</td><td>−100 %</td></tr>
+<tr><td>Depende del límite de uso de Claude</td><td>Sí</td><td>No</td><td>Riesgo eliminado</td></tr>
+<tr><td>Confiabilidad (días con carga)</td><td>77 %</td><td>~97 %</td><td>+20 puntos</td></tr>
+<tr><td>Duración de la carga al Sheet</td><td>~1 a 2 min (IA leyendo y verificando)</td><td>~2 s</td><td>~−98 %</td></tr>
+<tr><td>Mi tiempo diario de revisión</td><td>~5 min</td><td>~1 min</td><td>−4 min por día</td></tr>
+<tr><td>Mi tiempo por mes</td><td>~2 h 30 min</td><td>~30 min</td><td>−2 h por mes (~24 h por año)</td></tr>
+</table>
+
+<h2>5. Supuestos</h2>
+<ul>
+<li>El consumo futuro sería parecido al promedio medido (1,59 M por pasada). Con más avisos por día, el AS-IS crecería; el TO-BE sigue en 0.</li>
+<li>Los tokens son «procesados»: incluyen lecturas de caché, que cuestan bastante menos que el texto nuevo. El ahorro real en el límite del plan es menor que 47,7 M «llenos», pero va en la misma dirección: hoy esa capacidad la usaba una tarea que no necesitaba IA.</li>
+<li>Confiabilidad TO-BE de ~97 %: supone la Mac prendida o dormida (no apagada) y que LinkedIn y Google respondan. El 3 % restante cubre cortes; los pendientes se recuperan al día siguiente.</li>
+<li>Tiempo de revisión AS-IS de ~5 min: abrir la sesión de la tarea, leer el resumen y abrir el Sheet. TO-BE de ~1 min: leer la notificación y abrir el Sheet solo si hay algo bueno.</li>
+<li>La duración del script de búsqueda (1 a 5 min) no cambia: es tiempo de máquina, no mío.</li>
+</ul>
+
+<h2>6. Escenarios</h2>
+<table border="1" cellpadding="6">
+<tr><th>Opción</th><th>Qué hace la IA</th><th>Tokens por mes (proyección)</th><th>Ahorro vs hoy</th></tr>
+<tr><td>Hoy (AS-IS)</td><td>Todo: corre, lee, carga y verifica</td><td>47,7 M</td><td>—</td></tr>
+<tr><td>C · Claude liviano</td><td>Solo corre el script y resume (≈3 llamadas)</td><td>~5 a 9 M</td><td>~80 a 90 %</td></tr>
+<tr><td>B · Claude de respaldo</td><td>Solo interviene si la carga falla (~1 vez por mes)</td><td>~1,5 M</td><td>~97 %</td></tr>
+<tr><td><b>A · Sin IA en la tarea diaria (elegida)</b></td><td>Nada; queda para análisis cuando yo quiera</td><td>0</td><td>100 %</td></tr>
+</table>
+
+<h2>7. Aprendizajes</h2>
+<ol>
+<li><b>No todo lo automatizado necesita IA.</b> La IA sirvió para construir el script; para correrlo todos los días alcanza con código.</li>
+<li><b>Medir antes de optimizar.</b> Sin el registro de las pasadas, «gasta muchos tokens» era una sensación; con los datos es un KPI: 1,59 M por día.</li>
+<li><b>El costo oculto es el contexto.</b> El 92 % de los tokens era el modelo releyendo el mismo contexto en cada paso, no el trabajo en sí.</li>
+<li><b>La dependencia también es un riesgo operativo.</b> Compartir el límite de uso con la automatización cortó la búsqueda 3 días.</li>
+<li><b>Diseñar para la falla.</b> Las filas pendientes y el registro de pasadas hacen que un error no signifique perder avisos.</li>
+</ol>
+
+<h2>8. Próximos pasos y KPIs a seguir</h2>
+<ul>
+<li>Instalar el Apps Script en el Sheet y activar la programación de la Mac.</li>
+<li>Apagar la tarea programada de Claude después de 1 pasada exitosa del nuevo esquema.</li>
+<li>Medir 30 días con pasadas.log: % de días con carga, filas por día, errores y pendientes recuperados.</li>
+<li>Comparar contra este AS-IS y actualizar las proyecciones con datos reales.</li>
+</ul>
+</body></html>

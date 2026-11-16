@@ -6,3 +6,7 @@ nuevas_filas.json
 __pycache__/
 .DS_Store
 ultima_pasada.txt
+pendientes.json
+pasadas.log
+apps_script_listo.gs
+pasadas-salida.log

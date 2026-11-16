@@ -348,7 +348,72 @@ def main():
     json.dump(filas, open(os.path.join(carpeta, "nuevas_filas.json"), "w", encoding="utf-8"), ensure_ascii=False)
     json.dump(sorted(vistos), open(ruta_vistos, "w", encoding="utf-8"), indent=0)
     open(RUTA_ULTIMA, "w", encoding="utf-8").write(datetime.now().isoformat(timespec="seconds"))
-    print(f"Ventana de búsqueda: {VENTANA_SEG // 3600} horas. Avisos nuevos revisados: {len(avisos)}. Filas para agregar ({PUNTAJE_MINIMO} o más): {len(filas)}.")
+    resumen = f"Ventana de búsqueda: {VENTANA_SEG // 3600} horas. Avisos nuevos revisados: {len(avisos)}. Filas para agregar ({PUNTAJE_MINIMO} o más): {len(filas)}."
+    print(resumen)
+    if CONFIG.get("sheet_webhook"):
+        cargar_en_sheet(filas, len(avisos))
+
+
+# --- Carga directa al Sheet (sin Claude, sin tokens) -------------------------------------------
+
+RUTA_PENDIENTES = os.path.join(CARPETA, "pendientes.json")
+RUTA_LOG = os.path.join(CARPETA, "pasadas.log")
+COL_FORMULAS = {COLUMNAS.index("Días publicado"), COLUMNAS.index("Filtro duro")}
+
+
+def preparar(fila):
+    """Las fórmulas de M y Q quedan como fórmula; cualquier otro texto que empiece con + o = va como texto."""
+    out = []
+    for i, v in enumerate(fila):
+        if isinstance(v, str) and v[:1] in "+=" and i not in COL_FORMULAS:
+            v = "'" + v
+        out.append(v)
+    return out
+
+
+def anotar(texto):
+    with open(RUTA_LOG, "a", encoding="utf-8") as f:
+        f.write(datetime.now().isoformat(timespec="seconds") + "  " + texto + "\n")
+
+
+def avisar(titulo, texto):
+    """Notificación de macOS con el resultado de la pasada."""
+    try:
+        import subprocess
+        esc = lambda s: s.replace("\\", "\\\\").replace('"', '\\"')
+        subprocess.run(["osascript", "-e", f'display notification "{esc(texto)}" with title "{esc(titulo)}"'], timeout=10)
+    except Exception:
+        pass
+
+
+def cargar_en_sheet(filas, revisados):
+    """Manda las filas nuevas (más las que quedaron pendientes de una pasada fallida) al Apps Script del Sheet."""
+    pendientes = json.load(open(RUTA_PENDIENTES, encoding="utf-8")) if os.path.exists(RUTA_PENDIENTES) else []
+    a_enviar = pendientes + filas
+    if not a_enviar:
+        anotar(f"OK · revisados {revisados} · 0 filas nuevas")
+        avisar("Búsqueda laboral", f"Revisé {revisados} avisos: ninguno llegó al puntaje {PUNTAJE_MINIMO}.")
+        return
+    cuerpo = json.dumps({"token": CONFIG.get("sheet_token", ""), "filas": [preparar(f) for f in a_enviar]}).encode("utf-8")
+    try:
+        req = urllib.request.Request(CONFIG["sheet_webhook"], data=cuerpo, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=60) as r:
+            resp = json.loads(r.read().decode("utf-8"))
+    except Exception as e:  # noqa: BLE001
+        resp = {"ok": False, "error": str(e)[:200]}
+    if resp.get("ok"):
+        if os.path.exists(RUTA_PENDIENTES):
+            os.remove(RUTA_PENDIENTES)
+        top = sorted(a_enviar, key=lambda f: -f[0])[:3]
+        mejores = " · ".join(f"{f[0]} {f[4]} ({f[5]})" for f in top)
+        anotar(f"OK · revisados {revisados} · {len(a_enviar)} filas desde la fila {resp.get('primera_fila')} · {mejores}")
+        avisar(f"Búsqueda laboral: {len(a_enviar)} avisos nuevos", mejores)
+        print(f"Sheet: agregué {len(a_enviar)} filas desde la fila {resp.get('primera_fila')}.")
+    else:
+        json.dump(a_enviar, open(RUTA_PENDIENTES, "w", encoding="utf-8"), ensure_ascii=False)
+        anotar(f"ERROR al cargar el Sheet ({resp.get('error')}) · {len(a_enviar)} filas quedan pendientes")
+        avisar("Búsqueda laboral: no pude cargar el Sheet", f"{len(a_enviar)} avisos quedaron pendientes para la próxima pasada.")
+        print(f"Sheet: ERROR {resp.get('error')}. {len(a_enviar)} filas quedan en pendientes.json.")
 
 
 if __name__ == "__main__":
