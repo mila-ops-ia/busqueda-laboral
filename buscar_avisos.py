@@ -196,18 +196,20 @@ def puntuar(j, html):
     elif re.search(r"calidad|quality|pmo|project|proyecto|business analyst|datos|data|\bbi\b|facturaci", t):
         s, area = 4, "Calidad / proyectos / datos"
 
+    # Nivel: Mila tiene perfil de liderazgo (coordinó logística con equipo a cargo y lideró proyectos),
+    # así que gerencia y jefatura suben, y los puestos de analista bajan.
     if re.search(r"director|head of|\bvp\b|vice", t):
-        s -= 1.5; nivel = "Dirección"; cons.append("Dirección: por encima de tu recorrido")
+        nivel = "Dirección"; ver.append("Dirección: confirmar alcance del puesto")
     elif re.search(r"gerente|manager", t):
-        nivel = "Gerencia"; cons.append("Nivel gerencial: salto respecto de tu último puesto")
+        s += 1.2; nivel = "Gerencia"
     elif re.search(r"jefe|jefa|lead|l[ií]der|responsable|team ?leader", t):
-        s += 0.6; nivel = "Jefatura / líder"
+        s += 1.2; nivel = "Jefatura / líder"
     elif re.search(r"coordinador|coordinadora|coordinator|supervisor|supervisora|encargad", t):
         s += 0.6; nivel = "Coordinación / supervisión"
     elif re.search(r"\bsr\b|senior|semi ?senior|ssr|especialista|specialist|consultor|ingenier", t):
-        s += 0.5; nivel = "Analista Sr / especialista"
+        s += 0.2; nivel = "Analista Sr / especialista"
     elif re.search(r"analista|analyst", t):
-        s -= 0.8; cons.append("Puede estar por debajo de tu nivel")
+        s -= 1; cons.append("Nivel analista: por debajo de tu perfil de liderazgo")
 
     def suma(patron, p, txt):
         nonlocal P
